@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { Sparkles, History, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { analyzeAll, ModelName, ModelResult, SentimentLabel } from "@/lib/sentiment";
+import { analyzeAll, ModelName, ModelResult } from "@/lib/sentiment";
+import type { AnalysisHistoryItem } from "@/hooks/use-analysis-history";
+export type { AnalysisHistoryItem };
 import { cn } from "@/lib/utils";
 
 const modelMeta: Record<ModelName, { color: string; bar: string; tag: string }> = {
