@@ -19,13 +19,6 @@ const labelTone: Record<string, string> = {
   neutral:  "text-neutral  border-neutral/30  bg-neutral/10",
 };
 
-export interface AnalysisHistoryItem {
-  id: string;
-  text: string;
-  createdAt: string;
-  results: ModelResult[];
-  consensus: SentimentLabel;
-}
 
 interface Props {
   history: AnalysisHistoryItem[];
