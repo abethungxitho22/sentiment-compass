@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ThumbsUp, ThumbsDown, Minus, Target, Database } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { ImprovementBanner } from "@/components/dashboard/ImprovementBanner";
@@ -6,23 +6,21 @@ import { StatBox } from "@/components/dashboard/StatBox";
 import { TrendLineChart } from "@/components/dashboard/TrendLineChart";
 import { SentimentDonut } from "@/components/dashboard/SentimentDonut";
 import { ModelComparisonTable } from "@/components/dashboard/ModelComparisonTable";
-import { PasteAnalyzer, AnalysisHistoryItem } from "@/components/dashboard/PasteAnalyzer";
-import { buildTrend, computeMetrics, generateReviews, type Review } from "@/lib/mock-data";
-import { consensusLabel, type ModelResult } from "@/lib/sentiment";
+import { PasteAnalyzer } from "@/components/dashboard/PasteAnalyzer";
+import { buildTrend, computeMetrics, type Review } from "@/lib/mock-data";
+import { useAnalysisHistory } from "@/hooks/use-analysis-history";
 
 const Index = () => {
-  const baseReviews = useMemo(() => generateReviews(240), []);
-  const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
+  const { history, add, clear } = useAnalysisHistory();
 
-  // User-submitted analyses become reviews that flow into all charts/stats
-  const userReviews: Review[] = useMemo(
+  // Charts and stats reflect ONLY the reviews the user has submitted.
+  const reviews: Review[] = useMemo(
     () =>
       history.map((h) => ({
         id: h.id,
         source: "Google Reviews",
         author: "You",
-        rating:
-          h.consensus === "positive" ? 5 : h.consensus === "negative" ? 1 : 3,
+        rating: h.consensus === "positive" ? 5 : h.consensus === "negative" ? 1 : 3,
         text: h.text,
         createdAt: h.createdAt,
         label: h.consensus,
@@ -35,10 +33,6 @@ const Index = () => {
     [history],
   );
 
-  const reviews = useMemo(
-    () => [...userReviews, ...baseReviews],
-    [userReviews, baseReviews],
-  );
   const trend = useMemo(() => buildTrend(reviews), [reviews]);
   const metrics = useMemo(() => computeMetrics(reviews), [reviews]);
 
@@ -47,21 +41,11 @@ const Index = () => {
     { positive: 0, negative: 0, neutral: 0 } as Record<"positive"|"negative"|"neutral", number>,
   );
   const total = reviews.length;
-  const pos = ((counts.positive / total) * 100).toFixed(1);
-  const neg = ((counts.negative / total) * 100).toFixed(1);
-  const neu = ((counts.neutral  / total) * 100).toFixed(1);
+  const safe = (n: number) => (total === 0 ? "0.0" : ((n / total) * 100).toFixed(1));
+  const pos = safe(counts.positive);
+  const neg = safe(counts.negative);
+  const neu = safe(counts.neutral);
   const avgAcc = (metrics.reduce((s, m) => s + m.accuracy, 0) / metrics.length * 100).toFixed(1);
-
-  const handleSubmit = (text: string, results: ModelResult[]) => {
-    const item: AnalysisHistoryItem = {
-      id: `user_${Date.now()}`,
-      text,
-      createdAt: new Date().toISOString(),
-      results,
-      consensus: consensusLabel(results),
-    };
-    setHistory((prev) => [item, ...prev].slice(0, 50));
-  };
 
   return (
     <AppLayout>
@@ -78,11 +62,9 @@ const Index = () => {
               </h1>
             </div>
             <div className="flex items-center gap-2 text-xs font-mono-data text-muted-foreground">
-              <span>4 sources</span>
-              <span className="text-border">|</span>
               <span>3 models</span>
               <span className="text-border">|</span>
-              <span className="text-foreground">{total} reviews</span>
+              <span className="text-foreground">{total} review{total === 1 ? "" : "s"} submitted</span>
             </div>
           </div>
 
@@ -90,11 +72,11 @@ const Index = () => {
 
           {/* Stat row */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <StatBox label="% Positive"        value={`${pos}%`} hint={`${counts.positive} reviews`}  icon={ThumbsUp}  variant="positive" />
-            <StatBox label="% Negative"        value={`${neg}%`} hint={`${counts.negative} reviews`}  icon={ThumbsDown} variant="negative" />
-            <StatBox label="% Neutral"         value={`${neu}%`} hint={`${counts.neutral} reviews`}   icon={Minus}     variant="neutral" />
+            <StatBox label="% Positive"        value={`${pos}%`} hint={`${counts.positive} review${counts.positive === 1 ? "" : "s"}`}  icon={ThumbsUp}  variant="positive" />
+            <StatBox label="% Negative"        value={`${neg}%`} hint={`${counts.negative} review${counts.negative === 1 ? "" : "s"}`}  icon={ThumbsDown} variant="negative" />
+            <StatBox label="% Neutral"         value={`${neu}%`} hint={`${counts.neutral} review${counts.neutral === 1 ? "" : "s"}`}   icon={Minus}     variant="neutral" />
             <StatBox label="Avg model accuracy"value={`${avgAcc}%`} hint="VADER · HF · AWS"          icon={Target}    variant="cyan" />
-            <StatBox label="Total analyzed"    value={total.toLocaleString()} hint="last 30 days"     icon={Database}  variant="purple" />
+            <StatBox label="Total analyzed"    value={total.toLocaleString()} hint="your submissions"     icon={Database}  variant="purple" />
           </div>
 
           {/* Trend + donut */}
@@ -111,8 +93,8 @@ const Index = () => {
           {/* Paste analyzer (full-width) */}
           <PasteAnalyzer
             history={history}
-            onSubmit={handleSubmit}
-            onClear={() => setHistory([])}
+            onSubmit={add}
+            onClear={clear}
           />
 
           <footer className="pt-4 pb-2 text-center font-mono-data text-[10px] uppercase tracking-[0.25em] text-muted-foreground">

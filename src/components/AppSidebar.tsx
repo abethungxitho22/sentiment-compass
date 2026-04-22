@@ -1,7 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard, MessagesSquare, TrendingUp, Wand2, GitCompare, BadgeCheck, Plug, Settings,
-} from "lucide-react";
+import { LayoutDashboard, MessagesSquare } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
@@ -10,14 +8,8 @@ import { SOURCE_STATUS, type Source } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { title: "Dashboard",       url: "/",                 icon: LayoutDashboard },
-  { title: "All Reviews",     url: "/reviews",          icon: MessagesSquare },
-  { title: "Trend Report",    url: "/trends",           icon: TrendingUp },
-  { title: "Live Analyze",    url: "/live",             icon: Wand2 },
-  { title: "Model Compare",   url: "/compare",          icon: GitCompare },
-  { title: "Accuracy Report", url: "/accuracy",         icon: BadgeCheck },
-  { title: "Connections",     url: "/connections",      icon: Plug },
-  { title: "Settings",        url: "/settings",         icon: Settings },
+  { title: "Dashboard",   url: "/",        icon: LayoutDashboard },
+  { title: "All Reviews", url: "/reviews", icon: MessagesSquare },
 ];
 
 export function AppSidebar() {
