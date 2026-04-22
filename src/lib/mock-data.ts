@@ -115,12 +115,13 @@ export interface ModelMetrics {
 export function computeMetrics(reviews: Review[]): ModelMetrics[] {
   const n = reviews.length;
   const seedFactor = Math.min(0.04, n / 10000);
-  return [
+  const rows: ModelMetrics[] = [
     { model: "VADER",          precision: 0.78 + seedFactor, recall: 0.74 + seedFactor, f1: 0.76 + seedFactor, accuracy: 0.77 + seedFactor },
     { model: "HuggingFace",    precision: 0.89 + seedFactor, recall: 0.87 + seedFactor, f1: 0.88 + seedFactor, accuracy: 0.88 + seedFactor },
     { model: "AWS Comprehend", precision: 0.84 + seedFactor, recall: 0.82 + seedFactor, f1: 0.83 + seedFactor, accuracy: 0.83 + seedFactor },
-  ].map((m) => ({
-    ...m,
+  ];
+  return rows.map((m) => ({
+    model: m.model,
     precision: Number(Math.min(0.99, m.precision).toFixed(3)),
     recall:    Number(Math.min(0.99, m.recall).toFixed(3)),
     f1:        Number(Math.min(0.99, m.f1).toFixed(3)),
