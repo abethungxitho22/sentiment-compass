@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ThumbsUp, ThumbsDown, Minus, Target, Database } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { ImprovementBanner } from "@/components/dashboard/ImprovementBanner";
@@ -6,12 +6,39 @@ import { StatBox } from "@/components/dashboard/StatBox";
 import { TrendLineChart } from "@/components/dashboard/TrendLineChart";
 import { SentimentDonut } from "@/components/dashboard/SentimentDonut";
 import { ModelComparisonTable } from "@/components/dashboard/ModelComparisonTable";
-import { LiveReviewFeed } from "@/components/dashboard/LiveReviewFeed";
-import { PasteAnalyzer } from "@/components/dashboard/PasteAnalyzer";
-import { buildTrend, computeMetrics, generateReviews } from "@/lib/mock-data";
+import { PasteAnalyzer, AnalysisHistoryItem } from "@/components/dashboard/PasteAnalyzer";
+import { buildTrend, computeMetrics, generateReviews, type Review } from "@/lib/mock-data";
+import { consensusLabel, type ModelResult } from "@/lib/sentiment";
 
 const Index = () => {
-  const reviews = useMemo(() => generateReviews(240), []);
+  const baseReviews = useMemo(() => generateReviews(240), []);
+  const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
+
+  // User-submitted analyses become reviews that flow into all charts/stats
+  const userReviews: Review[] = useMemo(
+    () =>
+      history.map((h) => ({
+        id: h.id,
+        source: "Google Reviews",
+        author: "You",
+        rating:
+          h.consensus === "positive" ? 5 : h.consensus === "negative" ? 1 : 3,
+        text: h.text,
+        createdAt: h.createdAt,
+        label: h.consensus,
+        scores: {
+          VADER: h.results[0].score,
+          HuggingFace: h.results[1].score,
+          "AWS Comprehend": h.results[2].score,
+        },
+      })),
+    [history],
+  );
+
+  const reviews = useMemo(
+    () => [...userReviews, ...baseReviews],
+    [userReviews, baseReviews],
+  );
   const trend = useMemo(() => buildTrend(reviews), [reviews]);
   const metrics = useMemo(() => computeMetrics(reviews), [reviews]);
 
@@ -24,6 +51,17 @@ const Index = () => {
   const neg = ((counts.negative / total) * 100).toFixed(1);
   const neu = ((counts.neutral  / total) * 100).toFixed(1);
   const avgAcc = (metrics.reduce((s, m) => s + m.accuracy, 0) / metrics.length * 100).toFixed(1);
+
+  const handleSubmit = (text: string, results: ModelResult[]) => {
+    const item: AnalysisHistoryItem = {
+      id: `user_${Date.now()}`,
+      text,
+      createdAt: new Date().toISOString(),
+      results,
+      consensus: consensusLabel(results),
+    };
+    setHistory((prev) => [item, ...prev].slice(0, 50));
+  };
 
   return (
     <AppLayout>
@@ -70,11 +108,12 @@ const Index = () => {
           {/* Model table */}
           <ModelComparisonTable metrics={metrics} />
 
-          {/* Live feed + analyzer (analyzer is full-width per spec; feed alongside) */}
-          <div className="grid lg:grid-cols-2 gap-6">
-            <LiveReviewFeed reviews={reviews} />
-            <PasteAnalyzer />
-          </div>
+          {/* Paste analyzer (full-width) */}
+          <PasteAnalyzer
+            history={history}
+            onSubmit={handleSubmit}
+            onClear={() => setHistory([])}
+          />
 
           <footer className="pt-4 pb-2 text-center font-mono-data text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             Sentilytics · v1.0 · multi-model sentiment intelligence

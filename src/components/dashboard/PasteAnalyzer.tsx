@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, History, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { analyzeAll, ModelName } from "@/lib/sentiment";
+import { analyzeAll, ModelName, ModelResult, SentimentLabel } from "@/lib/sentiment";
 import { cn } from "@/lib/utils";
 
 const modelMeta: Record<ModelName, { color: string; bar: string; tag: string }> = {
@@ -17,11 +17,43 @@ const labelTone: Record<string, string> = {
   neutral:  "text-neutral  border-neutral/30  bg-neutral/10",
 };
 
-export function PasteAnalyzer() {
+export interface AnalysisHistoryItem {
+  id: string;
+  text: string;
+  createdAt: string;
+  results: ModelResult[];
+  consensus: SentimentLabel;
+}
+
+interface Props {
+  history: AnalysisHistoryItem[];
+  onSubmit: (text: string, results: ModelResult[]) => void;
+  onClear: () => void;
+}
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+export function PasteAnalyzer({ history, onSubmit, onClear }: Props) {
   const [text, setText] = useState("The new dashboard looks beautiful and is incredibly fast, but the export button is broken.");
   const [submitted, setSubmitted] = useState(text);
 
   const results = useMemo(() => analyzeAll(submitted || ""), [submitted]);
+
+  const handleAnalyze = () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setSubmitted(trimmed);
+    onSubmit(trimmed, analyzeAll(trimmed));
+  };
 
   return (
     <div className="panel panel-amber p-5 sm:p-6">
@@ -32,7 +64,7 @@ export function PasteAnalyzer() {
             Paste & analyze
           </h2>
           <p className="font-mono-data text-[11px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-            Score any text against all three models instantly
+            Write a review · 3 models analyze it · See the results instantly
           </p>
         </div>
       </div>
@@ -50,7 +82,7 @@ export function PasteAnalyzer() {
               {text.trim().length} chars
             </span>
             <Button
-              onClick={() => setSubmitted(text)}
+              onClick={handleAnalyze}
               className="bg-primary text-primary-foreground hover:bg-primary/90 font-mono-data uppercase tracking-[0.15em] text-xs"
             >
               Analyze
@@ -102,6 +134,68 @@ export function PasteAnalyzer() {
             );
           })}
         </div>
+      </div>
+
+      {/* History */}
+      <div className="mt-6 pt-5 border-t border-border/60">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h3 className="font-display text-sm font-semibold flex items-center gap-2">
+            <History className="h-4 w-4 text-accent" />
+            Your analysis history
+            <span className="font-mono-data text-[10px] text-muted-foreground uppercase tracking-[0.18em]">
+              {history.length} entr{history.length === 1 ? "y" : "ies"}
+            </span>
+          </h3>
+          {history.length > 0 && (
+            <Button
+              onClick={onClear}
+              variant="ghost"
+              size="sm"
+              className="font-mono-data uppercase tracking-[0.15em] text-[10px] text-muted-foreground hover:text-negative"
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
+
+        {history.length === 0 ? (
+          <p className="text-xs text-muted-foreground font-mono-data">
+            No analyses yet — submit a review above to start your history.
+          </p>
+        ) : (
+          <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+            {history.map((h) => (
+              <li
+                key={h.id}
+                className="rounded-lg border border-border/60 bg-background/40 p-3"
+              >
+                <div className="flex items-center justify-between gap-3 mb-1.5">
+                  <span className={cn(
+                    "rounded-full border px-2 py-0.5 text-[10px] font-mono-data uppercase tracking-[0.18em]",
+                    labelTone[h.consensus],
+                  )}>
+                    {h.consensus}
+                  </span>
+                  <span className="font-mono-data text-[10px] text-muted-foreground">
+                    {timeAgo(h.createdAt)}
+                  </span>
+                </div>
+                <p className="text-sm text-foreground/90 mb-2 line-clamp-2">{h.text}</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {h.results.map((r) => (
+                    <span key={r.model} className="font-mono-data text-[10px] flex items-center gap-1">
+                      <span className={modelMeta[r.model].color}>{r.model}</span>
+                      <span className="text-muted-foreground">
+                        {r.score > 0 ? "+" : ""}{r.score.toFixed(2)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
