@@ -76,30 +76,22 @@ export function generateReviews(count = 240): Review[] {
 }
 
 export interface DailyTrend {
-  date: string;        // YYYY-MM-DD
+  date: string;        // ISO timestamp (per-review point)
   VADER: number;
   HuggingFace: number;
   "AWS Comprehend": number;
 }
 
+// One point per review, ordered by time. The chart reflects exactly
+// the reviews the user has submitted, in the order they were submitted.
 export function buildTrend(reviews: Review[]): DailyTrend[] {
-  const buckets = new Map<string, { v: number[]; h: number[]; a: number[] }>();
-  reviews.forEach((r) => {
-    const d = r.createdAt.slice(0, 10);
-    if (!buckets.has(d)) buckets.set(d, { v: [], h: [], a: [] });
-    const b = buckets.get(d)!;
-    b.v.push(r.scores.VADER);
-    b.h.push(r.scores.HuggingFace);
-    b.a.push(r.scores["AWS Comprehend"]);
-  });
-  const avg = (arr: number[]) => (arr.reduce((s, n) => s + n, 0) / arr.length);
-  return [...buckets.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, b]) => ({
-      date,
-      VADER: Number(avg(b.v).toFixed(3)),
-      HuggingFace: Number(avg(b.h).toFixed(3)),
-      "AWS Comprehend": Number(avg(b.a).toFixed(3)),
+  return [...reviews]
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .map((r) => ({
+      date: r.createdAt,
+      VADER: r.scores.VADER,
+      HuggingFace: r.scores.HuggingFace,
+      "AWS Comprehend": r.scores["AWS Comprehend"],
     }));
 }
 
