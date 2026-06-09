@@ -27,7 +27,6 @@ const Index = () => {
         scores: {
           VADER: h.results[0].score,
           HuggingFace: h.results[1].score,
-          "AWS Comprehend": h.results[2].score,
         },
       })),
     [history],

@@ -58,7 +58,7 @@ export function TrendLineChart({ data }: Props) {
                 time: d.date,
                 VADER: toHappy(d.VADER),
                 HuggingFace: toHappy(d.HuggingFace),
-                "AWS Comprehend": toHappy(d["AWS Comprehend"]),
+               // "AWS Comprehend": toHappy(d["AWS Comprehend"]),
               }))}
               margin={{ top: 8, right: 12, bottom: 4, left: -16 }}
             >
@@ -98,7 +98,7 @@ export function TrendLineChart({ data }: Props) {
               />
               <Line type="monotone" dataKey="VADER"          stroke="hsl(var(--primary))"   strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
               <Line type="monotone" dataKey="HuggingFace"    stroke="hsl(var(--secondary))" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-              <Line type="monotone" dataKey="AWS Comprehend" stroke="hsl(var(--accent))"    strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+             
             </LineChart>
           </ResponsiveContainer>
         </div>

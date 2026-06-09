@@ -16,7 +16,6 @@ const labelTone: Record<string, string> = {
 const modelColor: Record<ModelName, string> = {
   VADER: "text-primary",
   HuggingFace: "text-secondary",
-  "AWS Comprehend": "text-accent",
 };
 
 const FILTERS = ["all", "positive", "neutral", "negative"] as const;

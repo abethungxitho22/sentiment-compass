@@ -2,7 +2,7 @@
 // Replace with real VADER / HuggingFace / AWS Comprehend calls server-side later.
 
 export type SentimentLabel = "positive" | "negative" | "neutral";
-export type ModelName = "VADER" | "HuggingFace" | "AWS Comprehend";
+export type ModelName = "VADER" | "HuggingFace" ;
 
 export interface ModelResult {
   model: ModelName;
@@ -96,15 +96,9 @@ export function analyzeAll(text: string): ModelResult[] {
   };
 
   // AWS Comprehend — wider neutral band
-  const aScore = Math.max(-1, Math.min(1, base * 0.92 + jitter(text + "aws", 0.06)));
-  const aws: ModelResult = {
-    model: "AWS Comprehend",
-    score: Number(aScore.toFixed(3)),
-    label: labelFromScore(aScore, 0.15, -0.15),
-    confidence: Math.min(0.99, 0.58 + Math.abs(aScore) * 0.38 + Math.min(words, 5) * 0.02),
-  };
 
-  return [vader, hf, aws];
+
+  return [vader, hf];
 }
 
 export function consensusLabel(results: ModelResult[]): SentimentLabel {

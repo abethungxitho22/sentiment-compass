@@ -68,7 +68,6 @@ export function generateReviews(count = 240): Review[] {
       scores: {
         VADER: results[0].score,
         HuggingFace: results[1].score,
-        "AWS Comprehend": results[2].score,
       },
     });
   }
@@ -79,7 +78,6 @@ export interface DailyTrend {
   date: string;        // ISO timestamp (per-review point)
   VADER: number;
   HuggingFace: number;
-  "AWS Comprehend": number;
 }
 
 // One point per review, ordered by time. The chart reflects exactly
@@ -91,7 +89,6 @@ export function buildTrend(reviews: Review[]): DailyTrend[] {
       date: r.createdAt,
       VADER: r.scores.VADER,
       HuggingFace: r.scores.HuggingFace,
-      "AWS Comprehend": r.scores["AWS Comprehend"],
     }));
 }
 
@@ -110,7 +107,7 @@ export function computeMetrics(reviews: Review[]): ModelMetrics[] {
   const rows: ModelMetrics[] = [
     { model: "VADER",          precision: 0.78 + seedFactor, recall: 0.74 + seedFactor, f1: 0.76 + seedFactor, accuracy: 0.77 + seedFactor },
     { model: "HuggingFace",    precision: 0.89 + seedFactor, recall: 0.87 + seedFactor, f1: 0.88 + seedFactor, accuracy: 0.88 + seedFactor },
-    { model: "AWS Comprehend", precision: 0.84 + seedFactor, recall: 0.82 + seedFactor, f1: 0.83 + seedFactor, accuracy: 0.83 + seedFactor },
+   
   ];
   return rows.map((m) => ({
     model: m.model,

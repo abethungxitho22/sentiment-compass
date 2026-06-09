@@ -17,7 +17,7 @@ export function ImprovementBanner({ trend }: Props) {
     const prev = trend.slice(0, half);
     const avg = (xs: DailyTrend[]) =>
       xs.reduce(
-        (s, d) => s + toHappy((d.VADER + d.HuggingFace + d["AWS Comprehend"]) / 3),
+        (s, d) => s + toHappy((d.VADER + d.HuggingFace ) / 2),
         0,
       ) / xs.length;
     const r = avg(recent);
@@ -31,21 +31,10 @@ export function ImprovementBanner({ trend }: Props) {
       <div className="panel panel-cyan p-6 sm:p-8">
         <div className="flex items-start justify-between gap-6 flex-wrap">
           <div className="space-y-3 max-w-2xl">
-            <div className="font-mono-data text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-              Sentiment trend · waiting for data
-            </div>
-            <h1 className="font-display text-3xl sm:text-5xl font-bold leading-[1.05] tracking-tight">
-              Is our product improving?{" "}
-              <span className="text-primary">Need more reviews.</span>
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base max-w-xl">
-              Submit at least 4 reviews in the analyzer below and we'll compare the most recent
-              half against the older half to tell you whether sentiment is going up or down.
-            </p>
-            <p className="font-mono-data text-xs text-muted-foreground">
-              {trend.length} of 4 reviews submitted
-            </p>
-          </div>
+  <div className="font-mono-data text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+    Sentiment trend · waiting for data
+  </div>
+</div>
           <div className="h-16 w-16 rounded-2xl grid place-items-center border bg-primary/10 border-primary/30 text-primary">
             <Sparkles className="h-8 w-8" />
           </div>

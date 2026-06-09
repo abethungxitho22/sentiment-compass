@@ -6,7 +6,7 @@ interface Props { metrics: ModelMetrics[]; }
 const modelAccent: Record<string, string> = {
   VADER: "text-primary",
   HuggingFace: "text-secondary",
-  "AWS Comprehend": "text-accent",
+
 };
 
 function Bar({ value }: { value: number }) {
